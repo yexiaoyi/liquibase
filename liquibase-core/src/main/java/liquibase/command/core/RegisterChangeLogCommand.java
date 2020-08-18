@@ -232,9 +232,7 @@ public class RegisterChangeLogCommand extends AbstractSelfConfiguratingCommand<C
         Collections.sort(projects, new Comparator<Project>() {
             @Override
             public int compare(Project o1, Project o2) {
-                Date date1 = o1.getCreateDate();
-                Date date2 = o2.getCreateDate();
-                return date2.compareTo(date1);
+                return o1.getCreateDate().compareTo(o2.getCreateDate());
             }
         });
         return projects;

@@ -34,8 +34,7 @@ class OnlineHubServiceTest extends Specification {
         where:
         date                  | expected
         null                  | "null"
-        "2002-03-04"          | "2002-03-04"
-        "2002-03-04T05:06:07" | "2002-03-04 05:06:07.0"
+        "2002-03-04T05:06:07Z" | "2002-03-04T05:06:07Z"
     }
 
 }

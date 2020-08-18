@@ -1,12 +1,12 @@
 package liquibase.hub.model;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 public class OperationChangeEvent implements HubModel {
     private String eventType;
-    private Date startDate;
-    private Date endDate;
+    private ZonedDateTime startDate;
+    private ZonedDateTime endDate;
     private UUID hubChangeId;
     private String changesetId;
     private String changesetAuthor;
@@ -16,7 +16,7 @@ public class OperationChangeEvent implements HubModel {
     private String operationStatusType;
     private String statusMessage;
     private String logs;
-    private Date logsTimestamp;
+    private ZonedDateTime logsTimestamp;
     private Project project;
     private Operation operation;
 
@@ -43,20 +43,20 @@ public class OperationChangeEvent implements HubModel {
         return this;
     }
 
-    public Date getStartDate() {
+    public ZonedDateTime getStartDate() {
         return startDate;
     }
 
-    public OperationChangeEvent setStartDate(Date startDate) {
+    public OperationChangeEvent setStartDate(ZonedDateTime startDate) {
         this.startDate = startDate;
       return this;
     }
 
-    public Date getEndDate() {
+    public ZonedDateTime getEndDate() {
         return endDate;
     }
 
-    public OperationChangeEvent setEndDate(Date endDate) {
+    public OperationChangeEvent setEndDate(ZonedDateTime endDate) {
         this.endDate = endDate;
         return this;
     }
@@ -142,11 +142,11 @@ public class OperationChangeEvent implements HubModel {
         return this;
     }
 
-    public Date getLogsTimestamp() {
+    public ZonedDateTime getLogsTimestamp() {
         return logsTimestamp;
     }
 
-    public OperationChangeEvent setLogsTimestamp(Date logsTimestamp) {
+    public OperationChangeEvent setLogsTimestamp(ZonedDateTime logsTimestamp) {
         this.logsTimestamp = logsTimestamp;
         return this;
     }

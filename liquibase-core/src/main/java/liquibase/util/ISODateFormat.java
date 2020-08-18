@@ -1,19 +1,21 @@
 package liquibase.util;
 
 import java.sql.Time;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
+import java.time.temporal.Temporal;
+import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 
 public class ISODateFormat {
 
-    private SimpleDateFormat dateTimeFormat = new SimpleDateFormat(DATE_TIME_FORMAT_STRING);
-    private SimpleDateFormat dateTimeFormatWithSpace = new SimpleDateFormat(DATE_TIME_FORMAT_STRING_WITH_SPACE);
+    private SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     private SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-    private static final String DATE_TIME_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ss";
-    private static final String DATE_TIME_FORMAT_STRING_WITH_SPACE = "yyyy-MM-dd HH:mm:ss";
-
 
     public String format(java.sql.Date date) {
         return dateFormat.format(date);
@@ -35,7 +37,7 @@ public class ISODateFormat {
                 }
             }
             sb.append('.');
-            sb.append(nanosString.substring(0, lastNotNullIndex + 1));
+            sb.append(nanosString, 0, lastNotNullIndex + 1);
         }
         return sb.toString();
     }
@@ -53,43 +55,58 @@ public class ISODateFormat {
         } else if (date instanceof java.util.Date) {
             return format(new java.sql.Timestamp(date.getTime()));
         } else {
-            throw new RuntimeException("Unknown type: "+date.getClass().getName());
+            throw new RuntimeException("Unknown type: " + date.getClass().getName());
         }
     }
 
+    public Temporal parseDateTime(String dateAsString) throws ParseException {
+        if (dateAsString == null) {
+            return null;
+        }
+
+        dateAsString = dateAsString.replaceFirst("(\\d) (\\d)", "$1T$2"); //replace spaces between date/time with T
+
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+        TemporalAccessor parsed = formatter.parse(dateAsString);
+
+        try {
+            return ZonedDateTime.from(parsed);
+        } catch (DateTimeException e) {
+            //use local timezone
+            return LocalDateTime.from(parsed);
+        }
+    }
+
+    /**
+     * @deprecated Should use {@link #parseDateTime(String)}
+     */
     public Date parse(String dateAsString) throws ParseException {
         if (dateAsString == null) {
             return null;
         }
-        int length = dateAsString.length();
-        switch (length) {
-        case 8:
+
+        if (!dateAsString.contains("-")) {
+            //just a time, no date
             return new java.sql.Time(timeFormat.parse(dateAsString).getTime());
-        case 10:
-            return new java.sql.Date(dateFormat.parse(dateAsString).getTime());
-        case 19:
-            if (dateAsString.contains(" ")) {
-                return new java.sql.Timestamp(dateTimeFormatWithSpace.parse(dateAsString).getTime());
-            } else {
-                return new java.sql.Timestamp(dateTimeFormat.parse(dateAsString).getTime());
-            }
-        default:
-            if ((length < 19) || (dateAsString.charAt(19) != '.')) {
-                throw new ParseException(String.format("Unknown date format to parse: %s.", dateAsString), 0);
-            }
-            long time = 0;
-            if (dateAsString.contains(" ")) {
-                time = dateTimeFormatWithSpace.parse(dateAsString.substring(0, 19)).getTime();
-            } else {
-                time = dateTimeFormat.parse(dateAsString.substring(0, 19)).getTime();
-            }
-            int nanos = Integer.parseInt(dateAsString.substring(20));
-            for (; length < 29; length++) {
-                nanos *= 10;
-            }
-            java.sql.Timestamp timestamp = new java.sql.Timestamp(time);
-            timestamp.setNanos(nanos);
-            return timestamp;
         }
+
+        if (!dateAsString.contains(":")) {
+            //just a date, no time
+            return new java.sql.Date(dateFormat.parse(dateAsString).getTime());
+        }
+
+        TemporalAccessor parsed = parseDateTime(dateAsString);
+
+        try {
+            final ZoneId ignored = ZoneId.from(parsed);
+        } catch (DateTimeException e) {
+            //add local timezone
+            parsed = ZonedDateTime.of(LocalDateTime.from(parsed), ZoneId.systemDefault());
+        }
+
+        final Timestamp timestamp = new Timestamp(Instant.from(parsed).toEpochMilli());
+        timestamp.setNanos(parsed.get(ChronoField.NANO_OF_SECOND));
+        return timestamp;
+
     }
 }

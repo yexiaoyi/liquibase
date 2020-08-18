@@ -64,6 +64,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Writer;
 import java.text.DateFormat;
+import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -214,7 +216,7 @@ public class Liquibase implements AutoCloseable {
      *
      */
     public void update(Contexts contexts, LabelExpression labelExpression, boolean checkLiquibaseTables) throws LiquibaseException {
-        Date startTime = new Date();
+        ZonedDateTime startTime = ZonedDateTime.now();
         runInScope(() -> {
 
             LockService lockService = LockServiceFactory.getInstance().getLockService(database);
@@ -279,7 +281,7 @@ public class Liquibase implements AutoCloseable {
             }
         });
     }
-    private void postUpdateHubExceptionHandling(Date startTime,
+    private void postUpdateHubExceptionHandling(ZonedDateTime startTime,
                                                 Operation updateOperation,
                                                 BufferedLogService bufferLog,
                                                 DatabaseChangeLog changeLog,
@@ -296,7 +298,7 @@ public class Liquibase implements AutoCloseable {
             hubService.sendOperationEvent(updateOperation, new OperationEvent()
                       .setEventType("COMPLETE")
                       .setStartDate(startTime)
-                      .setEndDate(new Date())
+                      .setEndDate(ZonedDateTime.now())
                       .setOperationEventStatus(
                                 new OperationEvent.OperationEventStatus()
                                         .setOperationEventStatusType("FAIL")
@@ -311,7 +313,7 @@ public class Liquibase implements AutoCloseable {
             Scope.getCurrentScope().getLog(getClass()).warning(originalExceptionMessage, serviceException);
         }
     }
-    private void postUpdateHub(Date startTime,
+    private void postUpdateHub(ZonedDateTime startTime,
                                Operation updateOperation,
                                BufferedLogService bufferLog,
                                DatabaseChangeLog changeLog) {
@@ -323,7 +325,7 @@ public class Liquibase implements AutoCloseable {
             hubService.sendOperationEvent(updateOperation, new OperationEvent()
                       .setEventType("COMPLETE")
                       .setStartDate(startTime)
-                      .setEndDate(new Date())
+                      .setEndDate(ZonedDateTime.now())
                       .setOperationEventStatus(
                                 new OperationEvent.OperationEventStatus()
                                         .setOperationEventStatusType("PASS")
@@ -344,7 +346,7 @@ public class Liquibase implements AutoCloseable {
     // This method performs a syncHub and returns a new Operation instance
     // If there is an error it returns null
     //
-    private Operation preUpdateHub(Date startTime,
+    private Operation preUpdateHub(ZonedDateTime startTime,
                                    Contexts contexts,
                                    LabelExpression labelExpression,
                                    DatabaseChangeLog changeLog,
@@ -518,7 +520,7 @@ public class Liquibase implements AutoCloseable {
         changeLogParameters.setContexts(contexts);
         changeLogParameters.setLabels(labelExpression);
 
-        Date startTime = new Date();
+        ZonedDateTime startTime = ZonedDateTime.now();
         runInScope(new Scope.ScopedRunner() {
             @Override
             public void run() throws Exception {
@@ -628,7 +630,7 @@ public class Liquibase implements AutoCloseable {
                 LockService lockService = LockServiceFactory.getInstance().getLockService(database);
                 lockService.waitForLock();
 
-                Date startTime = new Date();
+                ZonedDateTime startTime = ZonedDateTime.now();
 
                 Operation updateOperation = null;
                 BufferedLogService bufferLog = new BufferedLogService();

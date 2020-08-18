@@ -23,6 +23,7 @@ import liquibase.sqlgenerator.SqlGeneratorFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 public class HubChangeExecListener implements ChangeExecListener {
@@ -30,7 +31,7 @@ public class HubChangeExecListener implements ChangeExecListener {
 
     private final Operation operation;
 
-    private Map<ChangeSet, Date> startDateMap = new HashMap<>();
+    private Map<ChangeSet, ZonedDateTime> startDateMap = new HashMap<>();
 
     public HubChangeExecListener(Operation operation) {
         this.operation = operation;
@@ -39,7 +40,7 @@ public class HubChangeExecListener implements ChangeExecListener {
     @Override
     public void willRun(ChangeSet changeSet, DatabaseChangeLog databaseChangeLog, Database database, ChangeSet.RunStatus runStatus) {
         System.out.println("Hub will run");
-        startDateMap.put(changeSet, new Date());
+        startDateMap.put(changeSet, ZonedDateTime.now());
     }
 
     @Override
@@ -86,14 +87,14 @@ public class HubChangeExecListener implements ChangeExecListener {
         OperationChangeEvent operationChangeEvent = new OperationChangeEvent();
         operationChangeEvent.setEventType("UPDATE");
         operationChangeEvent.setStartDate(startDateMap.get(changeSet));
-        operationChangeEvent.setEndDate(new Date());
+        operationChangeEvent.setEndDate(ZonedDateTime.now());
         operationChangeEvent.setChangesetId(changeSet.getId());
         operationChangeEvent.setChangesetFilename(changeSet.getFilePath());
         operationChangeEvent.setChangesetAuthor(changeSet.getAuthor());
         operationChangeEvent.setOperationStatusType("PASS");
         operationChangeEvent.setGeneratedSql(sqlArray);
         operationChangeEvent.setOperation(operation);
-        operationChangeEvent.setLogsTimestamp(new Date());
+        operationChangeEvent.setLogsTimestamp(ZonedDateTime.now());
         operationChangeEvent.setLogs("LOGS");
         operationChangeEvent.setStatusMessage("STATUS MESSAGE");
 

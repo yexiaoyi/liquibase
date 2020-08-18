@@ -1,6 +1,6 @@
 package liquibase.hub.model;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 public class Environment implements HubModel {
@@ -9,9 +9,9 @@ public class Environment implements HubModel {
     private String jdbcUrl;
     private String name;
     private String description;
-    private Date createDate;
-    private Date updateDate;
-    private Date removeDate;
+    private ZonedDateTime createDate;
+    private ZonedDateTime updateDate;
+    private ZonedDateTime removeDate;
 
     private Project prj;
 
@@ -53,29 +53,29 @@ public class Environment implements HubModel {
         return this;
     }
 
-    public Date getCreateDate() {
+    public ZonedDateTime getCreateDate() {
         return createDate;
     }
 
-    public Environment setCreateDate(Date createDate) {
+    public Environment setCreateDate(ZonedDateTime createDate) {
         this.createDate = createDate;
         return this;
     }
 
-    public Date getUpdateDate() {
+    public ZonedDateTime getUpdateDate() {
         return updateDate;
     }
 
-    public Environment setUpdateDate(Date updateDate) {
+    public Environment setUpdateDate(ZonedDateTime updateDate) {
         this.updateDate = updateDate;
         return this;
     }
 
-    public Date getRemoveDate() {
+    public ZonedDateTime getRemoveDate() {
         return removeDate;
     }
 
-    public Environment setRemoveDate(Date removeDate) {
+    public Environment setRemoveDate(ZonedDateTime removeDate) {
         this.removeDate = removeDate;
         return this;
     }

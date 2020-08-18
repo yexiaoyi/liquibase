@@ -1,6 +1,6 @@
 package liquibase.hub.model;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.UUID;
 
@@ -11,8 +11,8 @@ public class Operation implements HubModel {
     private OperationStatus operationStatus;
     private Map<String, String> clientMetadata;
     private Map<String, String> parameters;
-    private Date createDate;
-    private Date removeDate;
+    private ZonedDateTime createDate;
+    private ZonedDateTime removeDate;
 
     @Override
     public UUID getId() {
@@ -55,19 +55,19 @@ public class Operation implements HubModel {
         this.parameters = parameters;
     }
 
-    public Date getCreateDate() {
+    public ZonedDateTime getCreateDate() {
         return createDate;
     }
 
-    public void setCreateDate(Date createDate) {
+    public void setCreateDate(ZonedDateTime createDate) {
         this.createDate = createDate;
     }
 
-    public Date getRemoveDate() {
+    public ZonedDateTime getRemoveDate() {
         return removeDate;
     }
 
-    public void setRemoveDate(Date removeDate) {
+    public void setRemoveDate(ZonedDateTime removeDate) {
         this.removeDate = removeDate;
     }
 

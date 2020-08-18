@@ -10,12 +10,13 @@ import liquibase.hub.*;
 import liquibase.hub.model.*;
 import liquibase.logging.Logger;
 import liquibase.plugin.Plugin;
-import liquibase.ui.ConsoleUIService;
 import liquibase.util.ISODateFormat;
 import liquibase.util.StringUtil;
 
 import java.lang.reflect.Field;
 import java.text.ParseException;
+import java.time.ZonedDateTime;
+import java.time.temporal.TemporalAccessor;
 import java.util.*;
 
 public class OnlineHubService implements HubService {
@@ -129,29 +130,24 @@ public class OnlineHubService implements HubService {
 
     @Override
     public List<Project> getProjects() throws LiquibaseHubException {
-        final UUID organizationId = getOrganization().getId();
+        try {
+            final UUID organizationId = getOrganization().getId();
 
-        final Map<String, List<Map>> response = http.doGet("/api/v1/organizations/" + organizationId.toString() + "/projects", Map.class);
-        List<Map> contentList = response.get("content");
-        List<Project> returnList = new ArrayList<>();
-        for (int i = 0; i < contentList.size(); i++) {
-            String id = (String) contentList.get(i).get("id");
-            String name = (String) contentList.get(i).get("name");
-            String dateString = (String) contentList.get(i).get("createDate");
-            Date date = null;
-            try {
-                date = parseDate(dateString);
-            } catch (ParseException dpe) {
-                Scope.getCurrentScope().getLog(getClass()).warning("Project '" + name + "' has an invalid create date of '" + dateString + "'");
+            final Map<String, List<Map>> response = http.doGet("/api/v1/organizations/" + organizationId.toString() + "/projects", Map.class);
+            List<Map> contentList = response.get("content");
+            List<Project> returnList = new ArrayList<>();
+            for (int i = 0; i < contentList.size(); i++) {
+                Project project = new Project();
+                project.setId(UUID.fromString((String) contentList.get(i).get("id")));
+                project.setName((String) contentList.get(i).get("name"));
+                project.setCreateDate(parseDate((String) contentList.get(i).get("createDate")));
+                returnList.add(project);
             }
-            Project project = new Project();
-            project.setId(UUID.fromString(id));
-            project.setName(name);
-            project.setCreateDate(date);
-            returnList.add(project);
-        }
 
-        return returnList;
+            return returnList;
+        } catch (ParseException e) {
+            throw new LiquibaseHubException(e.getMessage(), e);
+        }
     }
 
     @Override
@@ -243,11 +239,15 @@ public class OnlineHubService implements HubService {
         return returnList;
     }
 
-    protected Date parseDate(String stringDate) throws ParseException {
+    protected ZonedDateTime parseDate(String stringDate) throws ParseException {
         if (stringDate == null) {
             return null;
         }
-        return new ISODateFormat().parse(stringDate);
+        final TemporalAccessor parsed = new ISODateFormat().parseDateTime(stringDate);
+        if (!(parsed instanceof ZonedDateTime)) {
+            throw new ParseException("Could not parse timezone information", 0);
+        }
+        return (ZonedDateTime) parsed;
     }
 
     @Override

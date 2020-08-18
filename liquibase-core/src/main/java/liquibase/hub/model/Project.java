@@ -1,13 +1,13 @@
 package liquibase.hub.model;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 public class Project implements HubModel {
 
     private UUID id;
     private String name;
-    private Date createDate;
+    private ZonedDateTime createDate;
 
     @Override
     public UUID getId() {
@@ -28,11 +28,11 @@ public class Project implements HubModel {
         return this;
     }
 
-    public Date getCreateDate() {
+    public ZonedDateTime getCreateDate() {
         return createDate;
     }
 
-    public Project setCreateDate(Date createDate) {
+    public Project setCreateDate(ZonedDateTime createDate) {
         this.createDate = createDate;
         return this;
 

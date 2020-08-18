@@ -6,6 +6,7 @@ import liquibase.hub.HubService;
 import liquibase.hub.LiquibaseHubException;
 import liquibase.hub.model.*;
 
+import java.time.ZonedDateTime;
 import java.util.*;
 
 public class MockHubService implements HubService {
@@ -57,12 +58,12 @@ public class MockHubService implements HubService {
         Project project1 = new Project();
         project1.setId(UUID.randomUUID());
         project1.setName("Project 1");
-        project1.setCreateDate(new Date());
+        project1.setCreateDate(ZonedDateTime.now());
 
         Project project2 = new Project();
         project2.setId(UUID.randomUUID());
         project2.setName("Project 2");
-        project2.setCreateDate(new Date());
+        project2.setCreateDate(ZonedDateTime.now());
         return Arrays.asList(project1, project2);
     }
 

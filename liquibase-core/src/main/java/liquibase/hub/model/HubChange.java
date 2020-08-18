@@ -2,10 +2,14 @@ package liquibase.hub.model;
 
 import liquibase.changelog.ChangeSet;
 import liquibase.changelog.RanChangeSet;
+import liquibase.util.DateUtil;
 import liquibase.util.ISODateFormat;
 
 import java.text.ParseException;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 public class HubChange implements HubModel {
@@ -24,7 +28,7 @@ public class HubChange implements HubModel {
     private String md5sum;
     private String execType;
     private String deploymentId;
-    private Date dateExecuted;
+    private ZonedDateTime dateExecuted;
 
     public HubChange() {
     }
@@ -43,7 +47,7 @@ public class HubChange implements HubModel {
         this.md5sum = ranChangeSet.getLastCheckSum().toString();
         this.execType = ranChangeSet.getExecType().value;
         this.deploymentId = ranChangeSet.getDeploymentId();
-        this.dateExecuted = ranChangeSet.getDateExecuted();
+        this.dateExecuted = DateUtil.toZonedDateTime(ranChangeSet.getDateExecuted());
     }
 
     public HubChange(ChangeSet changeSet) {
@@ -57,13 +61,7 @@ public class HubChange implements HubModel {
         this.orderExecuted = 0;
         this.md5sum = changeSet.generateCheckSum().toString();
         this.execType = "EXECUTED";
-        ISODateFormat iso = new ISODateFormat();
-        try {
-            this.dateExecuted = iso.parse(new Date().toString());
-        }
-        catch (ParseException pe) {
-            this.dateExecuted = new Date();
-        }
+        this.dateExecuted = ZonedDateTime.now();
     }
 
 
@@ -176,11 +174,11 @@ public class HubChange implements HubModel {
         this.deploymentId = deploymentId;
     }
 
-    public Date getDateExecuted() {
+    public ZonedDateTime getDateExecuted() {
         return dateExecuted;
     }
 
-    public void setDateExecuted(Date dateExecuted) {
+    public void setDateExecuted(ZonedDateTime dateExecuted) {
         this.dateExecuted = dateExecuted;
     }
 }

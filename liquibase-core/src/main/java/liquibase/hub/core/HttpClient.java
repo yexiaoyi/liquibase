@@ -14,8 +14,8 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.introspector.BeanAccess;
 import org.yaml.snakeyaml.introspector.Property;
-import org.yaml.snakeyaml.nodes.NodeTuple;
-import org.yaml.snakeyaml.nodes.Tag;
+import org.yaml.snakeyaml.nodes.*;
+import org.yaml.snakeyaml.representer.Represent;
 import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.IOException;
@@ -27,6 +27,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +45,7 @@ class HttpClient {
         dumperOptions.setDefaultScalarStyle(DumperOptions.ScalarStyle.DOUBLE_QUOTED);
         dumperOptions.setWidth(Integer.MAX_VALUE);
 
-        yaml = new Yaml(new Constructor(), new HubRepresenter(), dumperOptions);
+        yaml = new Yaml(new HubYamlConstructor(), new HubRepresenter(), dumperOptions);
 
         yaml.setBeanAccess(BeanAccess.FIELD);
 
@@ -131,19 +132,8 @@ class HttpClient {
             connection.setRequestMethod(method);
 
             if (requestBodyObject != null) {
-                String requestBody = yaml.dumpAs(requestBodyObject, Tag.MAP, DumperOptions.FlowStyle.FLOW);
-
-                //strip out problematic text
-                requestBody = requestBody
-                        .replaceAll("(?m)^(\\s*)!![a-zA-Z0-9.]+", "$1")
-                        .replaceAll("!!int \"(\\d+)\"", "$1")
-                        .replaceAll("!!java.util.UUID ", "")
-                        .replaceAll("!!null \"null\"", "null")
-                        .replaceAll("!!liquibase.hub.model.hubChange ", "")
-                        .replaceAll("!!timestamp '(.+?)Z'", "\"$1\"");
-
-                try (OutputStream output = connection.getOutputStream()) {
-                    output.write(requestBody.getBytes(StandardCharsets.UTF_8));
+                try (final OutputStream outputStream = connection.getOutputStream()) {
+                    writeAsJson(requestBodyObject, outputStream);
                 }
             }
 
@@ -155,10 +145,10 @@ class HttpClient {
 //                    yaml.addTypeDescription(peopleDescription);
 //                }
 
-                return (T) yaml.loadAs(response, returnType);
+                return parseJson(response, returnType);
             } catch (IOException e) {
                 if (connection.getResponseCode() == 401) {
-                    throw new LiquibaseHubSecurityException("Authentication failure for "+connection.getRequestMethod()+" "+connection.getURL().toExternalForm());
+                    throw new LiquibaseHubSecurityException("Authentication failure for " + connection.getRequestMethod() + " " + connection.getURL().toExternalForm());
                 }
                 try {
                     try (InputStream error = connection.getErrorStream()) {
@@ -187,16 +177,62 @@ class HttpClient {
         }
     }
 
+    protected <T> T parseJson(InputStream input, Class<T> returnType) {
+        return yaml.loadAs(input, returnType);
+    }
+
+    protected void writeAsJson(Object object, OutputStream output) throws IOException {
+        if (object == null) {
+            return;
+        }
+
+        String requestBody = yaml.dumpAs(object, Tag.MAP, DumperOptions.FlowStyle.FLOW);
+
+        //strip out problematic text
+        requestBody = requestBody
+                .replaceAll("(?m)^(\\s*)!![a-zA-Z0-9.]+", "$1")
+                .replaceAll("!!int \"(\\d+)\"", "$1")
+                .replaceAll("!!java.util.UUID ", "")
+                .replaceAll("!!null \"null\"", "null")
+                .replaceAll("!!liquibase.hub.model.hubChange ", "")
+                .replaceAll("!!timestamp '(.+?)'", "\"$1\"");
+
+        output.write(requestBody.getBytes(StandardCharsets.UTF_8));
+    }
+
     public String getHubUrl() {
         HubConfiguration hubConfiguration = LiquibaseConfiguration.getInstance().getConfiguration(HubConfiguration.class);
         return hubConfiguration.getLiquibaseHubUrl();
     }
 
 
+    private static class HubYamlConstructor extends Constructor {
+
+        public HubYamlConstructor() {
+            this.yamlClassConstructors.put(NodeId.scalar, new HubConstructor());
+        }
+
+        private class HubConstructor extends ConstructScalar {
+            public Object construct(Node node) {
+                if (node.getType().equals(ZonedDateTime.class)) {
+                    return ZonedDateTime.parse(((ScalarNode) node).getValue());
+                } else {
+                    return super.construct(node);
+                }
+            }
+        }
+
+    }
+
     private static class HubRepresenter extends Representer {
 
         HubRepresenter() {
             getPropertyUtils().setSkipMissingProperties(true);
+            init();
+        }
+
+        protected void init() {
+            multiRepresenters.put(ZonedDateTime.class, new ZonedDateTimeRepresenter());
         }
 
         @Override
@@ -204,7 +240,16 @@ class HttpClient {
             if (propertyValue == null) {
                 return null;
             }
+
             return super.representJavaBeanProperty(javaBean, property, propertyValue, customTag);
         }
+
+        private class ZonedDateTimeRepresenter implements Represent {
+            @Override
+            public Node representData(Object data) {
+                return representScalar(Tag.STR, data.toString());
+            }
+        }
     }
+
 }

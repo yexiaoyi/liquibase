@@ -1,14 +1,14 @@
 package liquibase.hub.model;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 public class OperationEvent implements HubModel {
 
     private UUID id;
     private String eventType;
-    private Date startDate;
-    private Date endDate;
+    private ZonedDateTime startDate;
+    private ZonedDateTime endDate;
 
     private OperationEventLog operationEventLog;
     private OperationEventStatus operationEventStatus;
@@ -36,20 +36,20 @@ public class OperationEvent implements HubModel {
         return this;
     }
 
-    public Date getStartDate() {
+    public ZonedDateTime getStartDate() {
         return startDate;
     }
 
-    public OperationEvent setStartDate(Date startDate) {
+    public OperationEvent setStartDate(ZonedDateTime startDate) {
         this.startDate = startDate;
         return this;
     }
 
-    public Date getEndDate() {
+    public ZonedDateTime getEndDate() {
         return endDate;
     }
 
-    public OperationEvent setEndDate(Date endDate) {
+    public OperationEvent setEndDate(ZonedDateTime endDate) {
         this.endDate = endDate;
         return this;
     }
@@ -75,8 +75,8 @@ public class OperationEvent implements HubModel {
     public static class OperationEventLog implements HubModel {
         private UUID id;
         private String logMessage;
-        private Date createDate;
-        private Date timestampLog;
+        private ZonedDateTime createDate;
+        private ZonedDateTime timestampLog;
 
         @Override
         public UUID getId() {
@@ -97,20 +97,20 @@ public class OperationEvent implements HubModel {
             return this;
         }
 
-        public Date getCreateDate() {
+        public ZonedDateTime getCreateDate() {
             return createDate;
         }
 
-        public OperationEventLog setCreateDate(Date createDate) {
+        public OperationEventLog setCreateDate(ZonedDateTime createDate) {
             this.createDate = createDate;
             return this;
         }
 
-        public Date getTimestampLog() {
+        public ZonedDateTime getTimestampLog() {
             return timestampLog;
         }
 
-        public OperationEventLog setTimestampLog(Date timestampLog) {
+        public OperationEventLog setTimestampLog(ZonedDateTime timestampLog) {
             this.timestampLog = timestampLog;
             return this;
         }
