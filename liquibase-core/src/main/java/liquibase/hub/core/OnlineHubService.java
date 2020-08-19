@@ -10,14 +10,11 @@ import liquibase.hub.*;
 import liquibase.hub.model.*;
 import liquibase.logging.Logger;
 import liquibase.plugin.Plugin;
-import liquibase.ui.ConsoleUIService;
 import liquibase.util.ISODateFormat;
 import liquibase.util.StringUtil;
 
 import java.lang.reflect.Field;
 import java.text.ParseException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class OnlineHubService implements HubService {
@@ -84,9 +81,10 @@ public class OnlineHubService implements HubService {
         }
 
         if (!this.available) {
-            log.info("Not connecting to Liquibase Hub: "+ hubServiceFactory.getOfflineReason());
-            log.info("Hub communication failure: " + hubServiceFactory.getOfflineReason() + ".\n" +
-               "The data for your operations will not be recorded in your Liquibase Hub project");
+            String message = "Hub communication failure: " + hubServiceFactory.getOfflineReason() + ".\n" +
+                    "The data for your operations will not be recorded in your Liquibase Hub project";
+            Scope.getCurrentScope().getUI().sendMessage(message);
+            log.info(message);
         }
 
         return this.available;
