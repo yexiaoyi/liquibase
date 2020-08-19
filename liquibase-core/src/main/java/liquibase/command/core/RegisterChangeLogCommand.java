@@ -114,6 +114,7 @@ public class RegisterChangeLogCommand extends AbstractSelfConfiguratingCommand<C
             for (Project testProject : projects) {
                 if (testProject.getName().equalsIgnoreCase(hubProjectName)) {
                     project = testProject;
+                    break;
                 }
             }
         }

@@ -4,6 +4,9 @@ import liquibase.Liquibase;
 import liquibase.Scope;
 import liquibase.changelog.ChangeSet;
 import liquibase.changelog.DatabaseChangeLog;
+import liquibase.command.core.RegisterChangeLogCommand;
+import liquibase.configuration.HubConfiguration;
+import liquibase.configuration.LiquibaseConfiguration;
 import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
@@ -19,11 +22,10 @@ import liquibase.sql.visitor.SqlVisitor;
 import liquibase.statement.core.DropTableStatement;
 import org.junit.Test;
 
+import java.io.PrintStream;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -141,8 +143,18 @@ public class OracleIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testHubChangelog() throws Exception {
         assumeNotNull(this.getDatabase());
-
+        HubConfiguration hubConfiguration = LiquibaseConfiguration.getInstance().getConfiguration(HubConfiguration.class);
+        hubConfiguration.setLiquibaseHubProject("wwillard7800's Project");
         Liquibase liquibase = createLiquibase(this.hubTestChangelog);
+        RegisterChangeLogCommand command = new RegisterChangeLogCommand();
+        command.setOutputStream(new PrintStream(System.out));
+        command.setChangeLogFile(hubTestChangelog);
+        DatabaseChangeLog changeLog = liquibase.getDatabaseChangeLog();
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("changeLog", changeLog);
+        command.configure(configMap);
+        command.execute();
+
         clearDatabase();
 
         try {

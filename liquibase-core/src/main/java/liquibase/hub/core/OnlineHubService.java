@@ -51,39 +51,42 @@ public class OnlineHubService implements HubService {
     }
 
     public boolean isHubAvailable() {
-        if (this.available == null) {
-            final Logger log = Scope.getCurrentScope().getLog(getClass());
-            final HubServiceFactory hubServiceFactory = Scope.getCurrentScope().getSingleton(HubServiceFactory.class);
+        if (this.available != null) {
+            return this.available;
+        }
+        final Logger log = Scope.getCurrentScope().getLog(getClass());
+        final HubServiceFactory hubServiceFactory = Scope.getCurrentScope().getSingleton(HubServiceFactory.class);
 
-            if (LiquibaseConfiguration.getInstance().getConfiguration(HubConfiguration.class).getLiquibaseHubMode().equalsIgnoreCase("OFF")) {
-                hubServiceFactory.setOfflineReason("property liquibase.hub.mode is 'OFF'. To send data to Liquibase Hub, please set it to \"realtime\"");
-                this.available = false;
-            } else if (getApiKey() == null) {
-                hubServiceFactory.setOfflineReason("liquibase.hub.apiKey was not specified");
-                this.available = false;
-            } else {
-                try {
-                    if (userId == null) {
-                        HubUser me = this.getMe();
-                        this.userId = me.getId();
-                    }
-                    if (organizationId == null) {
-                        Organization organization = this.getOrganization();
-                        this.organizationId = organization.getId();
-                    }
-
-                    log.info("Connected to Liquibase Hub with an API Key '" +  LiquibaseConfiguration.getInstance().getConfiguration(HubConfiguration.class).getLiquibaseHubApiKeySecureDescription() + "'");
-                    this.available = true;
-                } catch (LiquibaseHubException e) {
-                    hubServiceFactory.setOfflineReason(e.getMessage());
-                    log.info(e.getMessage(), e);
-                    this.available = false;
+        if (LiquibaseConfiguration.getInstance().getConfiguration(HubConfiguration.class).getLiquibaseHubMode().equalsIgnoreCase("OFF")) {
+            hubServiceFactory.setOfflineReason("property liquibase.hub.mode is 'OFF'. To send data to Liquibase Hub, please set it to \"realtime\"");
+            this.available = false;
+        } else if (getApiKey() == null) {
+            hubServiceFactory.setOfflineReason("liquibase.hub.apiKey was not specified");
+            this.available = false;
+        } else {
+            try {
+                if (userId == null) {
+                    HubUser me = this.getMe();
+                    this.userId = me.getId();
                 }
-            }
+                if (organizationId == null) {
+                    Organization organization = this.getOrganization();
+                    this.organizationId = organization.getId();
+                }
 
-            if (!this.available) {
-                log.info("Not connecting to Liquibase Hub: "+ hubServiceFactory.getOfflineReason());
+                log.info("Connected to Liquibase Hub with an API Key '" +  LiquibaseConfiguration.getInstance().getConfiguration(HubConfiguration.class).getLiquibaseHubApiKeySecureDescription() + "'");
+                this.available = true;
+            } catch (LiquibaseHubException e) {
+                hubServiceFactory.setOfflineReason(e.getMessage());
+                log.info(e.getMessage(), e);
+                this.available = false;
             }
+        }
+
+        if (!this.available) {
+            log.info("Not connecting to Liquibase Hub: "+ hubServiceFactory.getOfflineReason());
+            log.info("Hub communication failure: " + hubServiceFactory.getOfflineReason() + ".\n" +
+               "The data for your operations will not be recorded in your Liquibase Hub project");
         }
 
         return this.available;
