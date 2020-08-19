@@ -21,6 +21,7 @@ import liquibase.util.StringUtil;
 
 import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
+import java.time.ZoneId;
 import java.util.*;
 
 /**
@@ -50,6 +51,7 @@ public class Scope {
         fileEncoding,
         databaseChangeLog,
         changeSet,
+        timezone, //the ZoneId of the timezone to use
     }
 
     private static ScopeManager scopeManager;
@@ -113,6 +115,7 @@ public class Scope {
         values.put(Attr.resourceAccessor.name(), new ClassLoaderResourceAccessor());
         values.put(Attr.serviceLocator.name(), new StandardServiceLocator());
         values.put(Attr.ui.name(), new ConsoleUIService());
+        values.put(Attr.timezone.name(), ZoneId.systemDefault());
     }
 
     protected Scope(Scope parent, Map<String, Object> scopeValues) {

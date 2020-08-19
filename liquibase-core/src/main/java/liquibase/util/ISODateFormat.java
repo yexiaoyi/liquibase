@@ -1,5 +1,7 @@
 package liquibase.util;
 
+import liquibase.Scope;
+
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.ParseException;
@@ -64,6 +66,15 @@ public class ISODateFormat {
             return null;
         }
 
+        if (!dateAsString.contains("-")) {
+            //just a time, no date
+            return LocalTime.from(DateTimeFormatter.ISO_LOCAL_TIME.parse(dateAsString));
+        }
+
+        if (!dateAsString.contains(":")) {
+            //just a date, no time
+            return LocalDate.from(DateTimeFormatter.ISO_LOCAL_DATE.parse(dateAsString));
+        }
         dateAsString = dateAsString.replaceFirst("(\\d) (\\d)", "$1T$2"); //replace spaces between date/time with T
 
         DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
@@ -78,7 +89,8 @@ public class ISODateFormat {
     }
 
     /**
-     * @deprecated Should use {@link #parseDateTime(String)}
+     * @deprecated Should use {@link #parseDateTime(String)}.
+     * Due to limitations in {@link java.util.Date, this loses timezone information}
      */
     public Date parse(String dateAsString) throws ParseException {
         if (dateAsString == null) {
@@ -101,6 +113,7 @@ public class ISODateFormat {
             final ZoneId ignored = ZoneId.from(parsed);
         } catch (DateTimeException e) {
             //add local timezone
+            //have to use ZoneId.systemDefault() instead of Scope.get(zoneId) because the Timestamp object assumes systemDefault timezone
             parsed = ZonedDateTime.of(LocalDateTime.from(parsed), ZoneId.systemDefault());
         }
 

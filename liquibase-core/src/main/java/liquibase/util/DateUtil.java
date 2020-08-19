@@ -1,5 +1,7 @@
 package liquibase.util;
 
+import liquibase.Scope;
+
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
@@ -10,6 +12,6 @@ public class DateUtil {
             return null;
         }
 
-        return ZonedDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+        return ZonedDateTime.ofInstant(date.toInstant(), Scope.getCurrentScope().get(Scope.Attr.timezone, ZoneId.class));
     }
 }
