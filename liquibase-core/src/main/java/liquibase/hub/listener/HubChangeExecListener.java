@@ -57,7 +57,8 @@ public class HubChangeExecListener extends AbstractChangeExecListener
                     DatabaseChangeLog databaseChangeLog,
                     Database database,
                     ChangeSet.ExecType execType) {
-        updateHub(changeSet, databaseChangeLog, database, "PASS", "PASSED");
+        String message = "PASSED::" + changeSet.getId() + "::" + changeSet.getAuthor();
+        updateHub(changeSet, databaseChangeLog, database, "PASS", message);
     }
 
 
@@ -101,7 +102,8 @@ public class HubChangeExecListener extends AbstractChangeExecListener
     public void rolledBack(ChangeSet changeSet,
                            DatabaseChangeLog databaseChangeLog,
                            Database database) {
-        updateHubForRollback(changeSet, databaseChangeLog, database, "PASS", "PASSED");
+        String message = "PASSED::" + changeSet.getId() + "::" + changeSet.getAuthor();
+        updateHubForRollback(changeSet, databaseChangeLog, database, "PASS", message);
     }
 
     @Override
